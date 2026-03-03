@@ -1,0 +1,169 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SMART STUDY PLANNER + FULL QUIZ</title>
+<link href="https://fonts.googleapis.com/css2?family=Shadows+Into+Light&family=Patrick+Hand&family=Indie+Flower&display=swap" rel="stylesheet">
+<style>
+body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f9; }
+header { background:#4CAF50; color:white; padding:20px; text-align:center; font-family: 'Shadows Into Light', cursive; font-weight:bold; text-transform:uppercase; }
+nav { display:flex; justify-content:center; margin:20px 0; }
+nav button { margin:0 10px; padding:10px 20px; cursor:pointer; border:none; border-radius:5px; background:#4CAF50; color:white; font-weight:bold; }
+nav button:hover { background:#45a049; }
+.container { max-width:900px; margin:auto; padding:20px; background:white; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
+input, select, button { padding:10px; margin:5px 0; width:100%; box-sizing:border-box; }
+table { width:100%; border-collapse:collapse; margin-top:15px; }
+table, th, td { border:1px solid #ddd; text-align:center; }
+th, td { padding:10px; }
+@media(max-width:600px){ nav { flex-direction:column; } nav button { margin:5px 0; } }
+.quiz-container { background: #fff8e1; padding: 15px; border-radius: 10px; box-shadow: 0 0 8px rgba(0,0,0,0.1); margin-bottom:20px; }
+.question { font-family: 'Patrick Hand', cursive; font-size:18px; color:#333; margin-bottom:10px; }
+.option { font-family: 'Indie Flower', cursive; font-size:16px; color:#555; padding:8px; margin:5px 0; cursor:pointer; border-radius:5px; background:#e0f7fa; border:none; width:100%; text-align:left; }
+.option:hover { background:#b2ebf2; }
+</style>
+</head>
+<body>
+<header>SMART STUDY PLANNER + FULL QUIZ</header><nav>
+<button onclick="showSection('signup')">Sign Up</button>
+<button onclick="showSection('login')">Login</button>
+<button onclick="showSection('dashboard')">Dashboard</button>
+</nav><div class="container"><!-- Sign Up Section --><div id="signup">
+<h2>Sign Up</h2>
+<input type="text" id="signupName" placeholder="Name">
+<input type="email" id="signupEmail" placeholder="Email">
+<input type="password" id="signupPass" placeholder="Password">
+<button onclick="signUp()">Sign Up</button>
+</div><!-- Login Section --><div id="login" style="display:none;">
+<h2>Login</h2>
+<input type="email" id="loginEmail" placeholder="Email">
+<input type="password" id="loginPass" placeholder="Password">
+<button onclick="login()">Login</button>
+</div><!-- Dashboard Section --><div id="dashboard" style="display:none;">
+<h2>Dashboard</h2>
+<h3>Add Subjects & Time (hours/day)</h3>
+<input type="text" id="subjectName" placeholder="Subject Name">
+<input type="number" id="studyTime" placeholder="Time in hours">
+<button onclick="addSubject()">Add Subject</button><h3>Study Plan</h3>
+<table id="planTable">
+<thead><tr><th>Subject</th><th>Daily Hours</th></tr></thead>
+<tbody></tbody>
+</table><h3>Mini Quiz</h3>
+<select id="classSelect"></select>
+<select id="subjectSelect"><option value="All">All Subjects</option></select>
+<button onclick="startQuiz()">Start Quiz</button>
+<div id="quizDiv"></div><button onclick="printPlan()">Download/Print Plan</button>
+
+</div><script>
+// Navigation
+function showSection(section){
+  document.getElementById('signup').style.display='none';
+  document.getElementById('login').style.display='none';
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById(section).style.display='block';
+}
+
+// Sign Up
+function signUp(){
+  let name=document.getElementById('signupName').value;
+  let email=document.getElementById('signupEmail').value;
+  let pass=document.getElementById('signupPass').value;
+  if(!name||!email||!pass){alert('Fill all fields'); return;}
+  localStorage.setItem('userName',name);
+  localStorage.setItem('userEmail',email);
+  localStorage.setItem('userPass',pass);
+  alert('Sign Up Successful! Login Now');
+  showSection('login');
+}
+
+// Login
+function login(){
+  let email=document.getElementById('loginEmail').value;
+  let pass=document.getElementById('loginPass').value;
+  if(email==localStorage.getItem('userEmail') && pass==localStorage.getItem('userPass')){
+    alert('Login Successful!');
+    showSection('dashboard');
+  } else { alert('Invalid Credentials'); }
+}
+
+// Study Planner
+let subjects=[];
+function addSubject(){
+  let name=document.getElementById('subjectName').value;
+  let time=document.getElementById('studyTime').value;
+  if(!name||!time||time<=0){alert('Enter valid values'); return;}
+  subjects.push({name:name,time:time});
+  updatePlanTable();
+  document.getElementById('subjectName').value='';
+  document.getElementById('studyTime').value='';
+  alert('Subject Added & Plan Updated!');
+}
+function updatePlanTable(){
+  let tbody=document.querySelector('#planTable tbody');
+  tbody.innerHTML='';
+  subjects.forEach(sub=>{
+    let tr=`<tr><td>${sub.name}</td><td>${sub.time} hr</td></tr>`;
+    tbody.innerHTML+=tr;
+  });
+}
+
+// Quiz Data (50 questions per subject placeholder)
+let quizzes = {
+  class9:{Maths:[],Science:[],English:[],Nepali:[],Social:[],Computers:[],Accounts:[]},
+  class10:{Maths:[],Science:[],English:[],Nepali:[],Social:[],Computers:[],Accounts:[]},
+  class11Science:{Biology:[],Chemistry:[],Physics:[],Maths:[],Computer:[],English:[],Nepali:[]},
+  class11Management:{Economics:[],Accounts:[],Computers:[],English:[],Nepali:[],Social:[]},
+  class12Science:{Biology:[],Chemistry:[],Physics:[],Maths:[],Computer:[],English:[],Nepali:[]},
+  class12Management:{Economics:[],Accounts:[],Computers:[],English:[],Nepali:[],Social:[]}
+};
+
+// Populate class and subjects
+let classSelect=document.getElementById('classSelect');
+let subjectOptions={
+  class9:['Maths','Science','English','Nepali','Social','Computers','Accounts'],
+  class10:['Maths','Science','English','Nepali','Social','Computers','Accounts'],
+  class11Science:['Biology','Chemistry','Physics','Maths','Computer','English','Nepali'],
+  class11Management:['Economics','Accounts','Computers','English','Nepali','Social'],
+  class12Science:['Biology','Chemistry','Physics','Maths','Computer','English','Nepali'],
+  class12Management:['Economics','Accounts','Computers','English','Nepali','Social']
+};
+for(let cls in subjectOptions){
+  let opt=document.createElement('option'); opt.value=cls; opt.text=cls.replace(/([a-z])([A-Z])/g,'$1 $2'); classSelect.appendChild(opt);
+}
+classSelect.addEventListener('change',function(){
+  let cls=this.value; let subSelect=document.getElementById('subjectSelect'); subSelect.innerHTML='<option value="All">All Subjects</option>';
+  subjectOptions[cls].forEach(sub=>{ let opt=document.createElement('option'); opt.value=sub; opt.text=sub; subSelect.appendChild(opt); });
+});
+
+// Quiz Functions
+let currentQuiz=[], currentQ=0;
+function startQuiz(){
+  let cls=document.getElementById('classSelect').value;
+  let sub=document.getElementById('subjectSelect').value;
+  currentQuiz=[]; currentQ=0;
+  if(sub==='All'){
+    for(let s of subjectOptions[cls]){
+      if(quizzes[cls] && quizzes[cls][s]) currentQuiz=currentQuiz.concat(quizzes[cls][s]);
+    }
+  } else { if(quizzes[cls] && quizzes[cls][sub]) currentQuiz=currentQuiz.concat(quizzes[cls][sub]); }
+  currentQuiz=currentQuiz.sort(()=>0.5-Math.random());
+  showQuestion();
+}
+function showQuestion(){
+  if(currentQ>=currentQuiz.length){ alert('Quiz Completed!'); document.getElementById('quizDiv').innerHTML=''; return;}
+  let qObj=currentQuiz[currentQ];
+  let div=document.getElementById('quizDiv');
+  div.innerHTML=`<div class='quiz-container'><div class='question'>${qObj.q}</div></div>`;
+  qObj.options.forEach(opt=>{
+    let btn=document.createElement('button'); btn.className='option'; btn.innerText=opt;
+    btn.onclick=function(){ if(opt===qObj.a){alert('Correct!');} else{alert('Wrong! Answer: '+qObj.a);} currentQ++; showQuestion(); };
+    div.querySelector('.quiz-container').appendChild(btn);
+  });
+}
+
+// Print / Download
+function printPlan(){ window.print(); }
+
+// Reminder Example
+setInterval(()=>{ if(document.getElementById('dashboard').style.display=='block'){ alert("Don't forget to study! 💪"); } },3600000);
+</script></body>
+</html>
